@@ -12,21 +12,21 @@ export default class Login extends React.Component {
 
     //keep state
     this.state = {
-      email: '',
+      username: '',
       password: ''
     };
   }
 
   sendCredentials() {
-    axios.post('/users', {
-      email: this.state.email,
+    axios.post('/auth/login', {
+      username: this.state.username,
       password: this.state.password,
     });
   }
 
   checkUsername(e) {
     this.setState({
-      email: e.target.value
+      username: e.target.value
     });
   }
 

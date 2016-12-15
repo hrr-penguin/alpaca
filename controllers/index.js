@@ -1,4 +1,6 @@
 var db = require('../db');
+var bcrypt = require('bcrypt');
+var saltRounds = 10;
 
 module.exports = {
   // in quiz page, GET request will return object of all quiz Q's and A's
@@ -49,30 +51,38 @@ module.exports = {
     }
   },
   user: {
-    // in signing page, GET request will check for username and return pass
-    get: function (req, res) {
+    get: function (username, callback) {
       db.User
-        .find({ where: { username: req.body.username } })
-        .then(function(err, userReturn) {
-          if (!userReturn) {
-            console.log('No user with username "' + req.body.username + '" was found.');
-          } else {
-            console.log('Hello ' + userReturn.username + '!');
-            console.log('All attributes of john:', userReturn.get());
+        .find({ where: { username: username} })
+        .then(function(err, result) {
+          callback(err, result);
+        });
+    },
+    post: function (req, res) {
+      // console.log('req.body', req.body);
+      db.User
+        .find({where: {username: req.body.username}})
+        .then(function(result) {
+          if (!result) {
+            bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
+              if (err) {
+                console.log(err);
+              }
+              db.User.create({
+                username: req.body.username,
+                password: hash,
+                firstname: req.body.firstname,
+                lastname: req.body.lastname,
+              }).then(function(user) {
+                console.log('login user', user);
+                res.sendStatus(201);
+              });
+            });
           }
         });
     },
-    // in sign-up page, POST request will create user entry into database
-    post: function (req, res) {
-      db.User.create({
-        username: req.body.username,
-        password: generatePasswordHash(req.body.password),
-        firstname: req.body.firstname,
-        lastname: req.body.lastname,
-        email: req.body.email
-      }).then(function(user) {
-        res.sendStatus(201);
-      });
+    checkPassword: function (password, attemptedPassword) {
+      return bcrypt.compareSync(attemptedPassword, password);
     }
   },
   results: {

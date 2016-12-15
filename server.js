@@ -1,31 +1,75 @@
+// setup - dependencies
+const express = require('express');
+const app = express();
+const router = require('express').Router();
+const morgan = require('morgan');
+const parser = require('body-parser');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const db = require('./db');
+const controller = require('./controllers');
+const cookieParser = require('cookie-parser')
+// config - middleware
 
-// Setup  ========================
-var express = require('express');
-var app = express();
-var db = require('./db');
-var axios = require('axios');
-var morgan = require('morgan');
-var parser = require('body-parser');
-var controller = require('./controllers');
-var router = require('express').Router();
+app.use(parser.json());
+app.use(morgan('dev'));
+app.use(cookieParser())
+app.use(express.static('public'));
+app.use('/', router);
+app.use(passport.initialize());
+app.use(passport.session());
 
 
-// Configuration  ========================
-app.use(express.static('public')); // Serve the client files
-app.use(morgan('dev')); //logging
-app.use(parser.json()); //parsing
-app.use('/', router); // Set up our routes
+
+app.use(require('express-session')({
+  secret: 'penguins_in_the_mist',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 6.048e8
+  }
+}));
 
 
-// Routes ========================
+
+
+passport.use('local-login', new LocalStrategy(function(username, password, done) {
+  db.User
+    .find({where: {username: username}})
+    .then(function(results) {
+      if (!results) {
+        // console.log('No results',results)
+        return done(null, false);
+      }
+      if (!(controller.user.checkPassword(results.dataValues.password, password))) {
+        console.log('wrong password');
+        return done(null, false);
+      }
+
+      return done(null, results.dataValues);
+      console.log('successful login');
+    });
+}));
+
+
+// routes
 // Connect controller methods to their corresponding routes
 router.get('/questions', controller.questions.get);
 router.post('/questions', controller.questions.post);
-//router.get('/users', controller.users.get);
-//router.post('/users', controller.users.post);
+router.post('/auth/login', passport.authenticate('local-login'));
+router.post('/auth/signup', controller.user.post);
 
-
-// Port ========================
+passport.serializeUser(function(user, done) {
+  done(null, user.username);
+});
+passport.deserializeUser(function(username, done) {
+  db.User.find({where: {username: username}})
+    .then(function(results) {
+      if (!results) return done(new Error('Invalid user'));
+      return done(null, results);
+    });
+});
+// port
 app.set('port', 1337);
 // If we are being run directly, run the server.
 if (!module.parent) {
@@ -33,7 +77,5 @@ if (!module.parent) {
   console.log('Listening on', app.get('port'));
 }
 
-
-// Module exports ========================
 module.exports.app = app;
 module.exports = router;
