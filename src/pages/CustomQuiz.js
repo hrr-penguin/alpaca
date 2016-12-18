@@ -18,7 +18,6 @@ export default class CustomQuiz extends React.Component {
       selectedCategory: '',
       public: false
     };
-
     this.clearForm = this.clearForm.bind(this);
   }
 
@@ -44,10 +43,8 @@ export default class CustomQuiz extends React.Component {
       public: this.state.public
     })
     .then((response) => {
-      // console.log('this is happening', response);
       this.clearForm();
     });
-    //this.getTestNameCurrentQuestions();
   }
 
   clearForm() {
@@ -90,6 +87,16 @@ export default class CustomQuiz extends React.Component {
     });
   }
 
+  // still handling input field text, but calling this.getTest..... to populate the
+  // existing questions for the supplied test in the div to the right
+  handleTestName(e) {
+    this.setState({
+      testName: e.target.value,
+      currQuesList: [],
+    }, this.getTestNameCurrentQuestions);
+    console.log(this.state.testName);
+  }
+
   handleSelectedCategory(e) {
     this.setState({
       selectedCategory: e.target.value
@@ -102,27 +109,18 @@ export default class CustomQuiz extends React.Component {
     });
   }
 
-  // still handling input field text, but calling this.getTest..... to populate the
-  // existing questions for the supplied test in the div to the right
-  handleTestName(e) {
-    this.setState({
-      testName: e.target.value,
-      currQuesList: [],
-    }, this.getTestNameCurrentQuestions);
-    console.log(this.state.testName);
-  }
 
   // getTestNameCurrentQuestions() {
   //   var entries;
   //   var config = {
   //     params: {
-  //       ID: this.state.testName
+  //       test: this.state.testName
   //     }
   //   };
 
   //   axios.get('/questions', config)
   //     .then(response => {
-  //       // console.log('line 75 custom quiz, res.body = ' + JSON.stringify(response.data, null, 2));
+  //       console.log();
   //       entries = response.data;
   //       var temp = [];
   //       entries.forEach(entry => {
@@ -219,7 +217,7 @@ export default class CustomQuiz extends React.Component {
                 </div>
 
                 <div className="form-group row">
-                  <label className="col-xs-4 col-form-label" htmlFor="public">Do you want to make this quiz public?</label>
+                  <label className="col-xs-4 col-form-label" htmlFor="public">Make quiz public?</label>
                   <div className="col-xs-8">
                     <input type="checkbox" onClick={this.handlePublicCheck.bind(this)} value={this.state.public} name="public" />
                   </div>
