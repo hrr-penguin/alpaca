@@ -36,7 +36,12 @@ module.exports = {
       } else {
         var user = req.session.passport.user;
         db.Test.findOrCreate({
-          where: {test: req.body.testName}
+          where: {
+            test: req.body.testName,
+            category: req.body.category,
+            public: req.body.public,
+            userId: user
+          }
         })
         .spread( (test, created) => {
           db.UsersTests.findOrCreate({

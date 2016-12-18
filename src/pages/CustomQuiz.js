@@ -13,10 +13,21 @@ export default class CustomQuiz extends React.Component {
       option2: '',
       option3: '',
       testName: '',
-      currQuesList: []
+      currQuesList: [],
+      categoryList: [],
+      selectedCategory: '',
+      public: false
     };
 
     this.clearForm = this.clearForm.bind(this);
+  }
+
+  componentDidMount() {
+    axios.get('/categories')
+      .then( (categories) => {
+        console.log(categories);
+        this.setState({ categoryList: categories.data });
+      });
   }
 
   // this actually pushes the current values to the server using a post request
@@ -28,10 +39,12 @@ export default class CustomQuiz extends React.Component {
       wrong1: this.state.option1,
       wrong2: this.state.option2,
       wrong3: this.state.option3,
-      testName: this.state.testName
+      testName: this.state.testName,
+      category: this.state.selectedCategory,
+      public: this.state.public
     })
     .then((response) => {
-      console.log('this is happening', response);
+      // console.log('this is happening', response);
       this.clearForm();
     });
     //this.getTestNameCurrentQuestions();
@@ -74,6 +87,18 @@ export default class CustomQuiz extends React.Component {
   handleWrong3(e) {
     this.setState({
       option3: e.target.value
+    });
+  }
+
+  handleSelectedCategory(e) {
+    this.setState({
+      selectedCategory: e.target.value
+    });
+  }
+
+  handlePublicCheck(e) {
+    this.setState({
+      public: !this.state.public
     });
   }
 
@@ -177,6 +202,26 @@ export default class CustomQuiz extends React.Component {
                   <label className="col-xs-4 col-form-label" htmlFor="option3">Wrong 3</label>
                   <div className="col-xs-8">
                     <input name="option3" type="text" ref="wrong3" className="form-control" placeholder="Enter an answer" onChange={this.handleWrong3.bind(this)}></input>
+                  </div>
+                </div>
+
+                <div className="form-group row">
+                  <label className="col-xs-4 col-form-label" htmlFor="category">Select a Category</label>
+                  <div className="col-xs-8">
+                    <select onChange={this.handleSelectedCategory.bind(this)} value={this.state.selectedCategory}>
+                      {
+                        this.state.categoryList.map( (category, item) => {
+                          return (<option key={item} value={category}>{category}</option>);
+                        })
+                      }
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-group row">
+                  <label className="col-xs-4 col-form-label" htmlFor="public">Do you want to make this quiz public?</label>
+                  <div className="col-xs-8">
+                    <input type="checkbox" onClick={this.handlePublicCheck.bind(this)} value={this.state.public} name="public" />
                   </div>
                 </div>
 

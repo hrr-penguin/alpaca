@@ -90,7 +90,7 @@ export default class PrebuiltQuiz extends React.Component {
   getQuizes() {
     axios.get('/quizzes')
       .then(response => {
-        console.log(response);
+        console.log('this is a response from get quizzes: ', response);
         var entries = response.data;
         console.log(entries);
         var temp = [];
@@ -273,7 +273,7 @@ export default class PrebuiltQuiz extends React.Component {
   handleSelect(target) {
     this.setState({
       selectedQuiz: target
-    });
+    }, this.GetQuestions);
   }
 
   handleDelete(id) {
