@@ -1,4 +1,7 @@
 var db = require('../db');
+var bcrypt = require('bcrypt');
+var saltRounds = 10;
+
 
 module.exports = {
   // in quiz page, GET request will return object of all quiz Q's and A's
@@ -6,73 +9,161 @@ module.exports = {
     get: function (req, res) {
       // console.log('===> MAKING GET REQUEST FOR QUESTIONS, REQ.PARAMS = ', JSON.parse(JSON.stringify(req.query)).ID)
       // console.log('===> MAKING GET REQUEST FOR QUESTIONS, REQ.PARAMS = ', req.query.ID)
+      console.log('QUERY ID is: ', req.query.ID);
       if (req.query.ID !== undefined) {
         console.log('INSIDE IF STATEMENT');
         db.Question.findAll({
           where: {
-            testName: req.query.ID
+            testId: req.query.ID,
+            userId: req.session.passport.user
           }
         })
         .then(function(questions) {
+          console.log('HERE ARE THE QUIZ QUESTIONS: ', questions);
           res.json(questions);
         });
       } else {
-        db.Question.findAll()
-        .then(function(questions) {
-          res.json(questions);
+        db.UsersTests.findAll({
+          where: {userId: req.session.passport.user}
+        }).then( (testIds) => {
+          var tests = [];
+          testIds.forEach( (entry) => {
+            tests.push(entry.dataValues.testId);
+          });
+          db.Test.findAll({
+            where: {
+              id: {
+                in: tests //[testId1, testId2]
+              }
+            }
+          }).then(function(testsArray) {
+            // console.log(testsArray);
+            res.json(testsArray);
+          });
         });
       }
     },
     // in quiz Creation page, POST request will add an entry into database
     post: function (req, res) {
-      console.log('POST REQUEST TO QUESTIONS');
-      console.log(JSON.stringify(req.body));
-      if (req.body.delete === true) {
-        console.log('POST delete request for name = ' + req.body.name);
-        db.Question.destroy({
+      if (req.body.ID !== undefined) {
+        db.UsersTests.destroy({
           where: {
-            name: req.body.name
+            testId: req.body.ID,
+            userId: req.session.passport.user
           }
+        })
+        .then(function(response) {
+          console.log('HERE ARE THE DELETE RESPONSE: ', response);
+          res.json(response);
         });
+
       } else {
-        db.Question.create({
-          name: req.body.name,
-          correct: req.body.correct,
-          wrong1: req.body.wrong1,
-          wrong2: req.body.wrong2,
-          wrong3: req.body.wrong3,
-          testName: req.body.testName,
-        }).then(function(question) {
+        //query findOrCreate Test table
+        var user = req.session.passport.user;
+        db.Test.findOrCreate({
+          where: {test: req.body.testName}
+        })
+        .spread( (test, created) => {
+          // console.log("this is test data", test);
+          // console.log("this is req", req.session);
+          //retrieve testId
+          //create userId and testId (grab userId from session)
+          db.UsersTests.findOrCreate({
+            where: {
+              testId: test.get('id'),
+              userId: user
+            }
+          });
+            // .spread( (usertest, created) => {
+            //   // console.log("this is usertest data ==========", usertest);
+            // });
+
+          //create a question using the remaining info and testId
+          db.Question.create({
+            name: req.body.name,
+            correct: req.body.correct,
+            wrong1: req.body.wrong1,
+            wrong2: req.body.wrong2,
+            wrong3: req.body.wrong3,
+            testId: test.get('id'),
+            userId: user
+          });
+            // .spread( (question, created) => {
+            //   console.log('this is what question is', question);
+            // });
+
+        })
+        .then( () => {
           res.sendStatus(201);
         });
       }
+
+
+
+
+    //   console.log('POST REQUEST TO QUESTIONS');
+    //   console.log(JSON.stringify(req.body));
+    //   if (req.body.delete === true) {
+    //     console.log('POST delete request for name = ' + req.body.name);
+    //     db.Question.destroy({
+    //       where: {
+    //         name: req.body.name
+    //       }
+    //     });
+    //   } else {
+    //     db.Question.create({
+    //       name: req.body.name,
+    //       correct: req.body.correct,
+    //       wrong1: req.body.wrong1,
+    //       wrong2: req.body.wrong2,
+    //       wrong3: req.body.wrong3,
+    //       testName: req.body.testName,
+    //     }).then(function(question) {
+    //       res.sendStatus(201);
+    //     });
+    //   }
+    },
+    getPublic: function(req, res) {
+      db.Test.findAll({
+        where: {
+          public: true
+        }
+      }).then(results => res.json(results));
     }
+
   },
   user: {
-    // in signing page, GET request will check for username and return pass
-    get: function (req, res) {
+    authenticate: function (attempted, password) {
+      return bcrypt.compareSync(attempted, password);
+    },
+    post: function (req, res) {
       db.User
-        .find({ where: { username: req.body.username } })
-        .then(function(err, userReturn) {
-          if (!userReturn) {
-            console.log('No user with username "' + req.body.username + '" was found.');
-          } else {
-            console.log('Hello ' + userReturn.username + '!');
-            console.log('All attributes of john:', userReturn.get());
+        .find({where: {username: req.body.username}})
+        .then(function(result) {
+          if (!result) {
+            bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
+              if (err) {
+                console.log(err);
+              }
+              db.User.create({
+                username: req.body.username,
+                password: hash,
+                firstname: req.body.firstname,
+                lastname: req.body.lastname,
+              }).then(function(user) {
+                console.log('POSTED USER', user);
+                res.sendStatus(201);
+              });
+            });
           }
         });
     },
-    // in sign-up page, POST request will create user entry into database
-    post: function (req, res) {
-      db.User.create({
-        username: req.body.username,
-        password: generatePasswordHash(req.body.password),
-        firstname: req.body.firstname,
-        lastname: req.body.lastname,
-        email: req.body.email
-      }).then(function(user) {
-        res.sendStatus(201);
-      });
+    login: function(req, res) {
+      res.send(req.body).status(201);
+    },
+    logout: function (req, res) {
+      req.logout();
+      res.redirect('/#/login');
     }
   },
   results: {
@@ -86,6 +177,11 @@ module.exports = {
       }).then(function(results) {
         res.sendStatus(201);
       });
+    }
+  },
+  categories: {
+    get: function(req, res) {
+      res.json( ['English', 'History', 'Math', 'Science'] );
     }
   }
 };

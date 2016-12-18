@@ -1,32 +1,34 @@
 import React from 'react';
 import axios from 'axios';
-import { Link } from 'react-router';
-
-
-//instead of writing <a href="">, you can substitute it with Link
-// import { Link } from "react-router";
+import { Link, hashHistory } from 'react-router';
 
 export default class Login extends React.Component {
   constructor(props) {
     super(props);
-
-    //keep state
     this.state = {
-      email: '',
+      username: '',
       password: ''
     };
   }
 
   sendCredentials() {
-    axios.post('/users', {
-      email: this.state.email,
+    let userUpdate = this.props.updateUser;
+    axios.post('/auth/login', {
+      username: this.state.username,
       password: this.state.password,
+    })
+    .then(function(result) {
+      userUpdate(result.data);
+      hashHistory.push('/prebuiltQuiz');
+    })
+    .catch(function(err) {
+      console.error('ERROR', err);
     });
   }
 
   checkUsername(e) {
     this.setState({
-      email: e.target.value
+      username: e.target.value
     });
   }
 
@@ -51,13 +53,13 @@ export default class Login extends React.Component {
             <div className="form-group row">
               <label htmlFor="password" className="col-xs-4 col-form-label">Password</label>
               <div className="col-xs-8">
-                <input type="text" className="form-control" id="password" placeholder="Password" onChange={this.checkPassword.bind(this)}></input>
+                <input type="text" className="form-control" id="password" type="password" placeholder="Password" onChange={this.checkPassword.bind(this)}></input>
               </div>
             </div>
-            <button className="btn btn-sm btn-primary" type="submit" onClick={this.sendCredentials.bind(this)}>Log In</button>
+            <button className="btn btn-sm btn-primary" type="button" onClick={this.sendCredentials.bind(this)}>Log In</button>
           </form>
           <div className="row text-center">
-            <small >Don't have an account?<Link to="/signup"> Sign Up</Link></small>
+            <small>Don't have an account?<Link to="/signup"> Sign Up</Link></small>
           </div>
         </div>
       </div>

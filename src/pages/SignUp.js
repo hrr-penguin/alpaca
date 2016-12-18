@@ -1,4 +1,5 @@
 import React from 'react';
+import axios from 'axios';
 
 export default class SignUp extends React.Component {
   constructor(props) {
@@ -14,7 +15,7 @@ export default class SignUp extends React.Component {
   }
 
   sendCredentials() {
-    axios.post('/users', {
+    axios.post('/auth/signup', {
       firstname: this.state.firstname,
       lastname: this.state.lastname,
       username: this.state.username,
@@ -47,7 +48,6 @@ export default class SignUp extends React.Component {
   }
 
   render() {
-    console.log('SignUp');
     return (
       <div className="container main-signup-container">
         <div className="col-md-6 col-md-offset-3">

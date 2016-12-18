@@ -2,11 +2,25 @@ import React from 'react';
 import { Link } from 'react-router';
 
 export default class Nav extends React.Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
       collapsed: true,
+      time: new Date()
     };
+  }
+  greeting(time) {
+    let timeOfDay = {
+      noon: new Date().setHours(12, 0, 0),
+      evening: new Date().setHours(17, 0, 0)
+    };
+    if (time < timeOfDay.noon) {
+      return 'morning';
+    } else if (time < timeOfDay.evening) {
+      return 'afternoon';
+    } else {
+      return 'evening';
+    }
   }
 
   toggleCollapse() {
@@ -20,7 +34,6 @@ export default class Nav extends React.Component {
     const navClass = collapsed ? 'collapse' : '';
 
     return (
-
       <nav className="navbar navbar-inverse navbar-fixed-top" role="navigation">
         <div className="container">
           <div className="navbar-header">
@@ -33,13 +46,20 @@ export default class Nav extends React.Component {
             <a className="navbar-brand" href="#">CrashCourse</a>
           </div>
           <div className={'navbar-collapse ' + navClass} id="bs-example-navbar-collapse-1">
-            <ul className="nav navbar-nav navbar-right">
-              <li><Link to="/settings" onClick={this.toggleCollapse.bind(this)}>Settings</Link></li>
-              <li><Link to="/prebuiltQuiz">PreBuilt Quiz</Link></li>
-              <li><Link to="/customQuiz">Custom Quiz</Link></li>
-              <li><Link to="/login">Log In</Link></li>
-              <li><Link to="/signup">Sign Up</Link></li>
-            </ul>
+            { this.props.user ? (
+              <ul className="nav navbar-nav navbar-right">
+                <li><Link to="/prebuiltQuiz" onClick={this.toggleCollapse.bind(this)}>Quizzes</Link></li>
+                <li><Link to="/publicQuizzes">Public Quizzes</Link></li>
+                <li><Link to="/groupQuiz">Group Quizzes</Link></li>
+                <li><Link to="/customQuiz">Build Quiz</Link></li>
+                <li><a href="/auth/signout">Log Out</a></li>
+                <li><Link to="/settings">Good {this.greeting(this.state.time)} {this.props.user.firstname.replace(/\b\w/g, l => l.toUpperCase())}!</Link></li>
+              </ul>
+            ) : (
+              <ul className="nav navbar-nav navbar-right">
+                <li><Link to="/login" onClick={this.toggleCollapse.bind(this)}>Log In</Link></li>
+              </ul>
+            )}
           </div>
         </div>
       </nav>
