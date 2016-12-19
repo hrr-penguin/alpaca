@@ -36,9 +36,18 @@ module.exports = {
       } else {
         var user = req.session.passport.user;
         db.Test.findOrCreate({
-          where: {test: req.body.testName}
+          where: {
+            $and: [{test: req.body.testName}, {userId: req.session.passport.user}]
+          },
+          defaults: {
+            test: req.body.testName,
+            public: req.body.public,
+            category: req.body.category,
+            userId: req.session.passport.user
+          }
         })
         .spread( (test, created) => {
+          console.log(created);
           db.UsersTests.findOrCreate({
             where: {
               testId: test.get('id'),
