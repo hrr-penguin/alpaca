@@ -24,20 +24,25 @@ export default class CustomQuiz extends React.Component {
   componentDidMount() {
     axios.get('/categories')
       .then( (categories) => {
-        this.setState({ categoryList: categories.data });
+        this.setState({
+          categoryList: categories.data,
+          selectedCategory: categories.data[0]
+        });
       });
   }
 
   // this actually pushes the current values to the server using a post request
   // with axios
   sendCustomTemplate(e) {
+    console.log(this.state.selectedCategory);
     axios.post('/questions', {
       name: this.state.question,
       correct: this.state.answer,
       wrong1: this.state.option1,
       wrong2: this.state.option2,
       wrong3: this.state.option3,
-      testName: this.state.testName
+      testName: this.state.testName,
+      category: this.state.selectedCategory
     })
     .then((response) => {
       console.log('this is happening', response);
