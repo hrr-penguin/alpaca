@@ -37,10 +37,11 @@ module.exports = {
         var user = req.session.passport.user;
         db.Test.findOrCreate({
           where: {
-            test: req.body.testName
+            $and: [{test: req.body.testName}, {userId: req.session.passport.user}]
           },
           defaults: {
-            public: true,
+            test: req.body.testName,
+            public: req.body.public,
             category: req.body.category,
             userId: req.session.passport.user
           }

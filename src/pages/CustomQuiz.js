@@ -15,7 +15,8 @@ export default class CustomQuiz extends React.Component {
       testName: '',
       currQuesList: [],
       selectedCategory: '',
-      categoryList: []
+      categoryList: [],
+      public: false
     };
 
     this.clearForm = this.clearForm.bind(this);
@@ -42,7 +43,8 @@ export default class CustomQuiz extends React.Component {
       wrong2: this.state.option2,
       wrong3: this.state.option3,
       testName: this.state.testName,
-      category: this.state.selectedCategory
+      category: this.state.selectedCategory,
+      public: this.state.public
     })
     .then((response) => {
       console.log('this is happening', response);
@@ -132,6 +134,12 @@ export default class CustomQuiz extends React.Component {
   //     });
   // }
 
+  handlePublicCheck(e) {
+    this.setState({
+      public: !this.state.public
+    });
+  }
+
   handleRemove(e) {
     // do something here that posts a delete request to server
     var tempName = e.target.textContent;
@@ -210,6 +218,12 @@ export default class CustomQuiz extends React.Component {
                         })
                       }
                     </select>
+                  </div>
+                </div>
+                <div className="form-group row">
+                  <label className="col-xs-4 col-form-label" htmlFor="public">Make quiz public?</label>
+                  <div className="col-xs-8">
+                    <input type="checkbox" onClick={this.handlePublicCheck.bind(this)} value={this.state.public} name="public" />
                   </div>
                 </div>
 
