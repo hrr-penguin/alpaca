@@ -68,7 +68,7 @@ export default class PublicQuizItem extends React.Component {
         <button
           type="button"
           className="list-group-item"
-          onClick={this.open.bind(this)}>{this.state.quizName}
+          onClick={this.open.bind(this)}>{this.state.quizName} - {this.state.createdBy}
         </button>
 
         <Modal show={this.state.showModal} onHide={this.close.bind(this)}>
