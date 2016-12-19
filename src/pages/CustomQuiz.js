@@ -14,8 +14,8 @@ export default class CustomQuiz extends React.Component {
       option3: '',
       testName: '',
       currQuesList: [],
-      categoryList: [],
       selectedCategory: '',
+      categoryList: [],
       public: false
     };
     this.clearForm = this.clearForm.bind(this);
@@ -24,14 +24,17 @@ export default class CustomQuiz extends React.Component {
   componentDidMount() {
     axios.get('/categories')
       .then( (categories) => {
-        console.log(categories);
-        this.setState({ categoryList: categories.data });
+        this.setState({
+          categoryList: categories.data,
+          selectedCategory: categories.data[0]
+        });
       });
   }
 
   // this actually pushes the current values to the server using a post request
   // with axios
   sendCustomTemplate(e) {
+    console.log(this.state.selectedCategory);
     axios.post('/questions', {
       name: this.state.question,
       correct: this.state.answer,
@@ -87,6 +90,12 @@ export default class CustomQuiz extends React.Component {
     });
   }
 
+  handleSelectedCategory(e) {
+    this.setState({
+      selectedCategory: e.target.value
+    });
+  }
+
   // still handling input field text, but calling this.getTest..... to populate the
   // existing questions for the supplied test in the div to the right
   handleTestName(e) {
@@ -134,6 +143,12 @@ export default class CustomQuiz extends React.Component {
   //       console.error(err);
   //     });
   // }
+
+  handlePublicCheck(e) {
+    this.setState({
+      public: !this.state.public
+    });
+  }
 
   handleRemove(e) {
     // do something here that posts a delete request to server
@@ -215,7 +230,6 @@ export default class CustomQuiz extends React.Component {
                     </select>
                   </div>
                 </div>
-
                 <div className="form-group row">
                   <label className="col-xs-4 col-form-label" htmlFor="public">Make quiz public?</label>
                   <div className="col-xs-8">
