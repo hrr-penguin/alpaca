@@ -76,6 +76,30 @@ module.exports = {
       }).then( function(data) {
         res.sendStatus(201);
       });
+    },
+    getBuildQuestions: function(req, res) {
+      db.Test.find({
+        where: {
+          test: req.query.test
+        }
+      }).then( (test) => {
+        console.log('this is test found: ', test);
+        //send back userId and testId
+        var testInfo = {
+          testId: test.id,
+          userId: req.session.passport.user,
+          authorId: test.userId
+        };
+        res.json(testInfo);
+      });
+    },
+    deleteQuestion: function(req, res) {
+      console.log(req.query);
+      // db.Question.destroy({
+      //   where: {
+      //     id: req.query.id
+      //   }
+      // });
     }
   },
   quizzes: {
