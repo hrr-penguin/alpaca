@@ -48,8 +48,9 @@ export default class CustomQuiz extends React.Component {
     })
     .then((response) => {
       this.clearForm();
+      this.getTestNameCurrentQuestions();
     });
-    this.getTestNameCurrentQuestions();
+
   }
 
   clearForm() {
@@ -103,7 +104,7 @@ export default class CustomQuiz extends React.Component {
   handleTestName(e) {
     this.setState({
       testName: e.target.value
-    });
+    }, this.getTestNameCurrentQuestions);
     console.log(this.state.testName);
   }
 
@@ -140,9 +141,11 @@ export default class CustomQuiz extends React.Component {
           .then((questions) => {
             var author = [];
             var currUser = [];
+            console.log(questions.data.length, ' len');
             questions.data.forEach((question) => {
-              if(testInfo.userId !== testInfo.authorId) {
-                if(question.userId === testInfo.authorId) {
+              console.log(testInfo.data.userId, ' !== ', testInfo.data.authorId, '----------');
+              if(testInfo.data.userId !== testInfo.data.authorId) {
+                if(question.userId === testInfo.data.authorId) {
                   author.push(question);
                 } else {
                   currUser.push(question);
@@ -151,6 +154,9 @@ export default class CustomQuiz extends React.Component {
                 currUser.push(question);
               }
             });
+
+            console.log('auth ', author);
+            console.log('user ', currUser);
 
             this.setState({
               currUserQues: currUser,
@@ -260,13 +266,13 @@ export default class CustomQuiz extends React.Component {
             <div className='col-md-6'>
               <div>
                 <h3>Click questions below to delete them once created!</h3>
-                  <h4>Author Questions</h4>
-                    {this.state.currAuthorQues.map((option, i) => (
-                      <button
-                        key={i}
-                        className={`answer btn btn-lg btn-danger ${option}`}>{option}
-                      </button> ))}
-                  <h4>Your Questions</h4>
+                  {/*<h4>Author Questions</h4>
+                                      {this.state.currAuthorQues.map((option, i) => (
+                                        <button
+                                          key={i}
+                                          className={`answer btn btn-lg btn-danger ${option.name}`}>{option.name}
+                                        </button> ))}
+                                    <h4>Your Questions</h4>*/}
                     {this.state.currUserQues.map((option, i) =>
                       <button
                         key={i}

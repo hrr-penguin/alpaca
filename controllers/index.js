@@ -12,6 +12,7 @@ module.exports = {
           id: req.query.testId
         }
       }).then(test => {
+        console.log(test.userId, req.session.passport.user, '-------------------------');
         db.Question.findAll({
           where: {
             testId: test.id,
@@ -94,12 +95,13 @@ module.exports = {
       });
     },
     deleteQuestion: function(req, res) {
-      console.log(req.query);
-      // db.Question.destroy({
-      //   where: {
-      //     id: req.query.id
-      //   }
-      // });
+      console.log(req.query.id);
+      db.Question.destroy({
+        where: {
+          id: req.query.id
+        }
+      });
+      res.sendStatus(201);
     }
   },
   quizzes: {
