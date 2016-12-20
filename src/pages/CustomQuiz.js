@@ -13,7 +13,8 @@ export default class CustomQuiz extends React.Component {
       option2: '',
       option3: '',
       testName: '',
-      currQuesList: [],
+      currUserQues: [],
+      currAuthorQues: [],
       selectedCategory: '',
       categoryList: [],
       public: false
@@ -48,6 +49,7 @@ export default class CustomQuiz extends React.Component {
     .then((response) => {
       this.clearForm();
     });
+    this.getTestNameCurrentQuestions();
   }
 
   clearForm() {
@@ -100,9 +102,8 @@ export default class CustomQuiz extends React.Component {
   // existing questions for the supplied test in the div to the right
   handleTestName(e) {
     this.setState({
-      testName: e.target.value,
-      currQuesList: [],
-    }, this.getTestNameCurrentQuestions);
+      testName: e.target.value
+    });
     console.log(this.state.testName);
   }
 
@@ -119,30 +120,48 @@ export default class CustomQuiz extends React.Component {
   }
 
 
-  // getTestNameCurrentQuestions() {
-  //   var entries;
-  //   var config = {
-  //     params: {
-  //       test: this.state.testName
-  //     }
-  //   };
+  getTestNameCurrentQuestions() {
+    var entries;
+    console.log('this is testName before fetching questions: ', this.state.testName);
+    var config = {
+      params: {
+        test:this.state.testName
+      }
+    };
+    axios.get('/questions/build', config)
+      .then((testInfo) => {
+        console.log('this is coming from getTestNameCurrentQuestions: ', testInfo);
+        var config = {
+          params: {
+            testId: testInfo.data.testId
+          }
+        };
+        axios.get('/questions', config)
+          .then((questions) => {
+            var author = [];
+            var currUser = [];
+            questions.data.forEach((question) => {
+              if(testInfo.userId !== testInfo.authorId) {
+                if(question.userId === testInfo.authorId) {
+                  author.push(question);
+                } else {
+                  currUser.push(question);
+                }
+              } else {
+                currUser.push(question);
+              }
+            });
 
-  //   axios.get('/questions', config)
-  //     .then(response => {
-  //       console.log();
-  //       entries = response.data;
-  //       var temp = [];
-  //       entries.forEach(entry => {
-  //         temp.push(entry.name);
-  //       });
-  //       this.setState({
-  //         currQuesList: temp,
-  //       });
-  //     })
-  //     .catch(function(err) {
-  //       console.error(err);
-  //     });
-  // }
+            this.setState({
+              currUserQues: currUser,
+              currAuthorQues: author
+            });
+          });
+      })
+      .catch((err) => {
+        console.log('this is error from getTestNameCurrentQuestions: ', err);
+      });
+  }
 
   handlePublicCheck(e) {
     this.setState({
@@ -152,19 +171,16 @@ export default class CustomQuiz extends React.Component {
 
   handleRemove(e) {
     // do something here that posts a delete request to server
-    var tempName = e.target.textContent;
-    this.setState({
-      currQuesList: [],
-    }, function() {
-      axios.post('/questions', {
-        delete: true,
-        name: tempName,
-      })
-      .catch(function(err) {
-        console.error(err);
+    var questionId = e.target.value;
+    var config = {
+      params: {
+        id: questionId
+      }
+    };
+    axios.delete('/questions', config)
+      .then((something) => {
+        this.getTestNameCurrentQuestions();
       });
-      this.getTestNameCurrentQuestions();
-    });
   }
 
   render() {
@@ -244,12 +260,20 @@ export default class CustomQuiz extends React.Component {
             <div className='col-md-6'>
               <div>
                 <h3>Click questions below to delete them once created!</h3>
-                {this.state.currQuesList.map((option, i) =>
-                  <button
-                    key={i}
-                    onClick={this.handleRemove.bind(this)}
-                    className={`answer btn btn-lg ${option}`}>{option}
-                  </button> )}
+                  <h4>Author Questions</h4>
+                    {this.state.currAuthorQues.map((option, i) => (
+                      <button
+                        key={i}
+                        className={`answer btn btn-lg btn-danger ${option}`}>{option}
+                      </button> ))}
+                  <h4>Your Questions</h4>
+                    {this.state.currUserQues.map((option, i) =>
+                      <button
+                        key={i}
+                        value={option.id}
+                        onClick={this.handleRemove.bind(this)}
+                        className={`answer btn btn-lg ${option.name}`}>{option.name}
+                      </button> )}
               </div>
             </div>
 
