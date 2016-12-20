@@ -74,7 +74,7 @@ export default class SignUp extends React.Component {
             <div className="form-group row">
               <label htmlFor="password" className="col-xs-4 col-form-label">Password</label>
               <div className="col-xs-8">
-                <input type="text" className="form-control" id="password" onChange={this.checkPassword.bind(this)}></input>
+                <input type="password" className="form-control" id="password" onChange={this.checkPassword.bind(this)}></input>
               </div>
             </div>
             <button className="btn btn-sm btn-primary" type="submit" onClick={this.sendCredentials.bind(this)}>Sign Up</button>
